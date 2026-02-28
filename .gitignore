@@ -1,0 +1,37 @@
+# Environment & secrets
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+Backend/.env
+Fronted/.env
+
+# Node dependencies
+node_modules
+Backend/node_modules
+Fronted/node_modules
+
+# Build output
+dist
+Backend/dist
+Fronted/dist
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / OS files
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+

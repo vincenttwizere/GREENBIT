@@ -5,7 +5,7 @@ Full-stack food redistribution platform that connects hotels and restaurants wit
 ### Stack
 
 - **Backend**: Node.js, Express.js, MySQL, Sequelize, JWT, bcryptjs
-- **Frontend**: React (Vite), React Router, Axios, Tailwind CSS, Context API
+- **Frontend**: React (Vite), React Router, Axios, Context API, custom CSS
 
 ### Prerequisites
 
@@ -27,8 +27,8 @@ Full-stack food redistribution platform that connects hotels and restaurants wit
    DB_HOST=localhost
    DB_NAME=greenbit_db
    DB_USER=root
-   DB_PASSWORD=your_password_here
-   JWT_SECRET=supersecretjwtkey
+   DB_PASSWORD=YOUR_DB_PASSWORD_HERE
+   JWT_SECRET=CHANGE_ME_TO_A_STRONG_SECRET
    ```
 
 3. Ensure the `greenbit_db` database exists in MySQL:
