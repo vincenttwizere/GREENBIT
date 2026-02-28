@@ -2,10 +2,16 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
+// ensure we have a JWT secret; fall back to a hard‑coded value for development
+const JWT_SECRET = process.env.JWT_SECRET || 'CHANGE_THIS_IN_PRODUCTION';
+if (!process.env.JWT_SECRET) {
+  console.warn('Warning: JWT_SECRET is not defined in .env, using fallback secret. Change this for production.');
+}
+
 const generateToken = (user) => {
   return jwt.sign(
     { id: user.id, role: user.role },
-    process.env.JWT_SECRET,
+    JWT_SECRET,
     { expiresIn: '7d' }
   );
 };

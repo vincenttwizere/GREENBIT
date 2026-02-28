@@ -1,6 +1,6 @@
 import Navbar from '../components/Navbar.jsx';
 import Hero from '../components/Hero.jsx';
-import HowItWorks from '../components/HowItWorks.jsx';
+import Services from '../components/Services.jsx';
 import Testimonials from '../components/Testimonials.jsx';
 import Partners from '../components/Partners.jsx';
 import ContactSection from '../components/ContactSection.jsx';
@@ -12,7 +12,7 @@ const LandingPage = () => {
       <Navbar />
       <main>
         <Hero />
-        <HowItWorks />
+        <Services />
         <Testimonials />
         <Partners />
         <ContactSection />

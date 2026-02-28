@@ -30,6 +30,12 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
+// validate critical env vars before launching
+if (!process.env.JWT_SECRET) {
+  console.error('Environment variable JWT_SECRET is required for token generation.');
+  // we don't exit here to allow development with fallback, but log the issue
+}
+
 async function startServer() {
   try {
     await ensureDatabaseExists();
