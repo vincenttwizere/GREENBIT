@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import logo from '../assets/greenbit-logo.png';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -35,9 +36,7 @@ const Navbar = () => {
       <nav className="navbar-main">
         <div className="navbar-main-content">
           <div className="navbar-brand">
-            <div className="navbar-logo-circle">
-              <span className="navbar-logo-initials">GB</span>
-            </div>
+            <img src={logo} alt="Green Bit Foundation logo" className="navbar-logo-image" />
             <div className="navbar-brand-text">
               <span className="navbar-logo-name">GREENBIT</span>
               <span className="navbar-tagline">For impact</span>

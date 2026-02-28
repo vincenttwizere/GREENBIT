@@ -129,6 +129,14 @@ header.navbar-header {
   letter-spacing: 0.02em;
 }
 
+.navbar-logo-image {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .navbar-brand-text {
   display: flex;
   flex-direction: column;
@@ -316,7 +324,7 @@ header.navbar-header {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-image: url('https://images.pexels.com/photos/3184183/pexels-photo-3184183.jpeg?auto=compress&cs=tinysrgb&w=1600');
+  background-image: url('./assets/hero-bg.png');
   background-size: cover;
   background-position: center;
 }
@@ -324,12 +332,41 @@ header.navbar-header {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background-color: rgba(20, 83, 45, 0.7);
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 83, 45, 0.65) 0%,
+    rgba(20, 83, 45, 0.78) 100%
+  );
+}
+
+.hero-slider {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+.hero-slide-active {
+  opacity: 1;
+  visibility: visible;
+  z-index: 1;
 }
 
 .hero-content {
-  position: relative;
-  z-index: 10;
   margin: 0 auto;
   max-width: 64rem;
   display: flex;
@@ -338,6 +375,36 @@ header.navbar-header {
   padding: 5rem 1rem;
   text-align: center;
   color: #ffffff;
+}
+
+.hero-dots {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.hero-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.hero-dot:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.hero-dot-active {
+  background: #ffffff;
+  border-color: #ffffff;
 }
 
 .hero-label {
@@ -383,33 +450,42 @@ header.navbar-header {
   gap: 1rem;
 }
 
-.hero-button {
-  border-radius: 9999px;
-  padding: 0.75rem 1.5rem;
-  font-size: 14px;
+.hero-actions .hero-button {
+  display: inline-block;
+  padding: 12px 28px;
+  font-size: 13px;
   font-weight: 600;
-  border: none;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  font-family: inherit;
 }
 
-.hero-button-primary {
-  background-color: #16A34A;
+.hero-button-white {
+  background-color: #ffffff;
+  color: #1e1e1e;
+  border: 2px solid #ffffff;
+}
+
+.hero-button-white:hover {
+  background-color: #f0f0f0;
+  border-color: #f0f0f0;
+  color: #1e1e1e;
+}
+
+.hero-button-outline {
+  background-color: transparent;
   color: #ffffff;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
+  border: 2px solid #ffffff;
 }
 
-.hero-button-primary:hover {
-  background-color: #15803D;
-}
-
-.hero-button-secondary {
-  border: 1px solid rgba(187, 247, 208, 0.7);
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #dcfce7;
-  backdrop-filter: blur(8px);
-}
-
-.hero-button-secondary:hover {
+.hero-button-outline:hover {
   background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
 /* How It Works */
