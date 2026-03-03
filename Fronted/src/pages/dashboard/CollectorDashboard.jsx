@@ -13,6 +13,7 @@ const CollectorDashboard = () => {
   const [history, setHistory] = useState([]);
   const [profile, setProfile] = useState(null);
   const [impact, setImpact] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
@@ -26,16 +27,18 @@ const CollectorDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [aRes, hRes, pRes, iRes] = await Promise.all([
+      const [aRes, hRes, pRes, iRes, nRes] = await Promise.all([
         api.get('/collector/available').catch(() => ({ data: [] })),
         api.get('/collector/history').catch(() => ({ data: [] })),
         api.get('/collector/profile').catch(() => ({ data: null })),
         api.get('/collector/impact').catch(() => ({ data: null })),
+        api.get('/collector/notifications').catch(() => ({ data: [] })),
       ]);
       setAvailable(aRes.data || []);
       setHistory(hRes.data || []);
       setProfile(pRes.data || null);
       setImpact(iRes.data || null);
+      setNotifications(nRes.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -148,28 +151,39 @@ const CollectorDashboard = () => {
           <div className="dashboard-tab-content">
             <div className="dashboard-metrics-grid-4">
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon">🎯</div>
+                <div className="metric-icon metric-icon-orange">🎯</div>
                 <p className="dashboard-metric-label">Total Collected</p>
                 <p className="dashboard-metric-value">{impact?.totalQuantity?.toFixed(1) || '0'} kg</p>
                 <p className="metric-trend">Food rescued</p>
               </div>
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon">🍽️</div>
+                <div className="metric-icon metric-icon-blue">🍽️</div>
                 <p className="dashboard-metric-label">Meals Delivered</p>
                 <p className="dashboard-metric-value">{impact?.meals?.toFixed(0) || '0'}</p>
                 <p className="metric-trend">People helped</p>
               </div>
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon">♻️</div>
+                <div className="metric-icon metric-icon-green">♻️</div>
                 <p className="dashboard-metric-label">CO₂ Savings</p>
                 <p className="dashboard-metric-value">{impact?.co2Saved?.toFixed(1) || '0'} kg</p>
                 <p className="metric-trend">Environmental impact</p>
               </div>
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon">📦</div>
+                <div className="metric-icon metric-icon-purple">📦</div>
                 <p className="dashboard-metric-label">Active Pickups</p>
                 <p className="dashboard-metric-value">{activePickups?.length || '0'}</p>
                 <p className="metric-trend">In progress</p>
+              </div>
+            </div>
+
+            <div className="dashboard-charts-grid" style={{ marginTop: '1.5rem' }}>
+              <div className="dashboard-chart-card">
+                <h3 className="dashboard-card-title">Activity Trends (Last 7 Days)</h3>
+                <div className="chart-placeholder">Chart placeholder</div>
+              </div>
+              <div className="dashboard-chart-card">
+                <h3 className="dashboard-card-title">Top Routes</h3>
+                <div className="chart-placeholder">Chart placeholder</div>
               </div>
             </div>
 

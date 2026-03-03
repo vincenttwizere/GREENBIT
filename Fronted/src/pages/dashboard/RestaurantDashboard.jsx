@@ -203,6 +203,17 @@ const RestaurantDashboard = () => {
               </div>
             </div>
 
+            <div className="dashboard-charts-grid" style={{ marginTop: '1.5rem' }}>
+              <div className="dashboard-chart-card">
+                <h3 className="dashboard-card-title">Food Trends (Last 7 Days)</h3>
+                <div className="chart-placeholder">Chart placeholder</div>
+              </div>
+              <div className="dashboard-chart-card">
+                <h3 className="dashboard-card-title">Top Contributors</h3>
+                <div className="chart-placeholder">Chart placeholder</div>
+              </div>
+            </div>
+
             <div className="dashboard-grid-two">
               <div className="dashboard-card">
                 <h3 className="dashboard-card-title">Monthly Activity</h3>

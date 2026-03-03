@@ -10,6 +10,7 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [surpluses, setSurpluses] = useState([]);
   const [analytics, setAnalytics] = useState(null);
+  const [notifications, setNotifications] = useState([]);
   
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
@@ -24,14 +25,16 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [uRes, sRes, aRes] = await Promise.all([
+      const [uRes, sRes, aRes, nRes] = await Promise.all([
         api.get('/admin/users').catch(() => ({ data: [] })),
         api.get('/admin/surplus').catch(() => ({ data: [] })),
         api.get('/admin/analytics').catch(() => ({ data: null })),
+        api.get('/admin/notifications').catch(() => ({ data: [] })),
       ]);
       setUsers(uRes.data || []);
       setSurpluses(sRes.data || []);
       setAnalytics(aRes.data || null);
+      setNotifications(nRes.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -132,6 +135,12 @@ const AdminDashboard = () => {
             Reports
           </button>
           <button
+            className={`dashboard-tab ${activeTab === 'notifications' ? 'active' : ''}`}
+            onClick={() => setActiveTab('notifications')}
+          >
+            🔔 Notifications
+          </button>
+          <button
             className={`dashboard-tab ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
           >
@@ -145,24 +154,36 @@ const AdminDashboard = () => {
             {/* Key Metrics */}
             <div className="admin-metrics-grid">
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon">🌍</div>
+                <div className="metric-icon metric-icon-orange">🌍</div>
                 <p className="dashboard-metric-label">Total Food Donated</p>
                 <p className="dashboard-metric-value">{analytics?.totalQuantity?.toFixed(1) || '0'} kg</p>
               </div>
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon">🍽️</div>
+                <div className="metric-icon metric-icon-blue">🍽️</div>
                 <p className="dashboard-metric-label">Meals Saved</p>
                 <p className="dashboard-metric-value">{analytics?.meals?.toFixed(0) || '0'}</p>
               </div>
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon">👥</div>
+                <div className="metric-icon metric-icon-green">👥</div>
                 <p className="dashboard-metric-label">Active Users</p>
                 <p className="dashboard-metric-value">{analytics?.activeUsers || '0'}</p>
               </div>
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon">♻️</div>
+                <div className="metric-icon metric-icon-purple">♻️</div>
                 <p className="dashboard-metric-label">CO₂ Reduced</p>
                 <p className="dashboard-metric-value">{analytics?.co2Saved?.toFixed(1) || '0'} kg</p>
+              </div>
+            </div>
+
+            {/* quick charts row similar to screenshot layout */}
+            <div className="dashboard-charts-grid" style={{ marginTop: '1.5rem' }}>
+              <div className="dashboard-chart-card">
+                <h3 className="dashboard-card-title">Sales Trends (Last 7 Days)</h3>
+                <div className="chart-placeholder">Chart placeholder</div>
+              </div>
+              <div className="dashboard-chart-card">
+                <h3 className="dashboard-card-title">Top 10 Selling Products</h3>
+                <div className="chart-placeholder">Chart placeholder</div>
               </div>
             </div>
 
@@ -512,6 +533,39 @@ const AdminDashboard = () => {
                 <button className="export-btn">📈 Export Analytics (CSV)</button>
                 <button className="export-btn">🎖️ Export Collector Performance</button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* NOTIFICATIONS TAB */}
+        {activeTab === 'notifications' && (
+          <div className="dashboard-tab-content">
+            <div className="dashboard-card">
+              <h2 className="dashboard-card-title">🔔 System Notifications</h2>
+              <p className="dashboard-card-help">Real-time alerts from platform activities</p>
+              
+              {loading ? (
+                <p className="dashboard-empty-text">Loading notifications...</p>
+              ) : notifications.length === 0 ? (
+                <p className="dashboard-empty-text">No notifications at this time.</p>
+              ) : (
+                <div className="notifications-list">
+                  {notifications.map((notif) => (
+                    <div key={notif.id} className={`notification-item notification-${notif.type}`}>
+                      <div className="notification-header">
+                        <h4>{notif.title}</h4>
+                        <span className="notification-time">{new Date(notif.createdAt).toLocaleString()}</span>
+                      </div>
+                      <p className="notification-message">{notif.message}</p>
+                      {notif.relatedData && (
+                        <div className="notification-data">
+                          <small>Related: {JSON.stringify(notif.relatedData)}</small>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
