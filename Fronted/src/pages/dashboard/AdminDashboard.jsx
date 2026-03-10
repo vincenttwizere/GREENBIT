@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLeaf, faUtensils, faUsers, faWind } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from '../../components/Sidebar.jsx';
 import Footer from '../../components/Footer.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
@@ -16,6 +18,13 @@ const AdminDashboard = () => {
   const [toast, setToast] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
+
+  // Listing filters (matches updated dashboard UI)
+  const [listingSearch, setListingSearch] = useState('');
+  const [listingCategory, setListingCategory] = useState('all');
+  const [listingStatus, setListingStatus] = useState('all');
+  const [listingRestaurant, setListingRestaurant] = useState('all');
+  const [listingSort, setListingSort] = useState('default');
 
   const showToast = (msg) => {
     setToast(msg);
@@ -89,6 +98,61 @@ const AdminDashboard = () => {
   const expiredSurpluses = useMemo(() => surpluses.filter(s => s.status === 'expired'), [surpluses]);
   const activeSurpluses = useMemo(() => surpluses.filter(s => s.status !== 'expired' && s.status !== 'collected'), [surpluses]);
 
+  const listingCategories = useMemo(() => {
+    const cats = [...new Set(surpluses.map(s => s.foodCategory).filter(Boolean))];
+    return cats.sort();
+  }, [surpluses]);
+
+  const restaurantOptions = useMemo(() => {
+    const ids = [...new Set(surpluses.map(s => s.restaurantId).filter(Boolean))];
+    return ids.sort((a, b) => (a || 0) - (b || 0));
+  }, [surpluses]);
+
+  const filteredListings = useMemo(() => {
+    let list = surpluses;
+
+    if (listingSearch) {
+      const term = listingSearch.toLowerCase();
+      list = list.filter(s =>
+        s.title?.toLowerCase().includes(term) ||
+        s.description?.toLowerCase().includes(term) ||
+        s.foodCategory?.toLowerCase().includes(term)
+      );
+    }
+
+    if (listingCategory !== 'all') {
+      list = list.filter(s => s.foodCategory === listingCategory);
+    }
+
+    if (listingStatus !== 'all') {
+      list = list.filter(s => s.status === listingStatus);
+    }
+
+    if (listingRestaurant !== 'all') {
+      list = list.filter(s => String(s.restaurantId) === String(listingRestaurant));
+    }
+
+    if (listingSort === 'quantityAsc') {
+      list = [...list].sort((a, b) => (a.quantity || 0) - (b.quantity || 0));
+    } else if (listingSort === 'quantityDesc') {
+      list = [...list].sort((a, b) => (b.quantity || 0) - (a.quantity || 0));
+    } else if (listingSort === 'newest') {
+      list = [...list].sort((a, b) => (new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
+    }
+
+    return list;
+  }, [surpluses, listingSearch, listingCategory, listingStatus, listingRestaurant, listingSort]);
+
+  const toggleListingStatus = (id) => {
+    setSurpluses(prev =>
+      prev.map(s =>
+        s.id === id
+          ? { ...s, status: s.status === 'active' ? 'expired' : 'active' }
+          : s
+      )
+    );
+  };
+
   return (
     <div className="page-dashboard">
       <Sidebar />
@@ -97,8 +161,17 @@ const AdminDashboard = () => {
 
         <div className="dashboard-header">
           <div>
-            <h1 className="dashboard-title">Admin Dashboard</h1>
+            <h1 className="dashboard-title">Dashboard Overview</h1>
             <p className="dashboard-subtitle">Monitor platform activity, verify users, and manage food rescue operations</p>
+          </div>
+          <div className="dashboard-search-wrapper">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search..."
+              className="dashboard-search"
+            />
           </div>
         </div>
 
@@ -154,12 +227,16 @@ const AdminDashboard = () => {
             {/* Key Metrics */}
             <div className="admin-metrics-grid">
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon metric-icon-orange">🌍</div>
+                <div className="metric-icon metric-icon-green">
+                <FontAwesomeIcon icon={faLeaf} />
+              </div>
                 <p className="dashboard-metric-label">Total Food Donated</p>
                 <p className="dashboard-metric-value">{analytics?.totalQuantity?.toFixed(1) || '0'} kg</p>
               </div>
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon metric-icon-blue">🍽️</div>
+                <div className="metric-icon metric-icon-blue">
+                <FontAwesomeIcon icon={faUtensils} />
+              </div>
                 <p className="dashboard-metric-label">Meals Saved</p>
                 <p className="dashboard-metric-value">{analytics?.meals?.toFixed(0) || '0'}</p>
               </div>
@@ -427,13 +504,79 @@ const AdminDashboard = () => {
         {activeTab === 'listings' && (
           <div className="dashboard-tab-content">
             <div className="dashboard-card">
-              <h2 className="dashboard-card-title">Active Listings</h2>
-              <p className="dashboard-card-help">Monitor all food surplus listings in real-time</p>
-              
+              <div className="listings-header">
+                <div>
+                  <h2 className="dashboard-card-title">Active Listings</h2>
+                  <p className="dashboard-card-help">Monitor all food surplus listings in real-time</p>
+                </div>
+                <div className="listings-actions">
+                  <button
+                    className="dashboard-primary-button"
+                    onClick={() => showToast('Add listing flow not implemented yet')}
+                  >
+                    + Add Listing
+                  </button>
+                </div>
+              </div>
+
+              <div className="listings-toolbar">
+                <div className="listings-toolbar-left">
+                  <input
+                    type="text"
+                    placeholder="Search listings..."
+                    value={listingSearch}
+                    onChange={(e) => setListingSearch(e.target.value)}
+                    className="dashboard-search"
+                  />
+                  <select
+                    value={listingCategory}
+                    onChange={(e) => setListingCategory(e.target.value)}
+                    className="dashboard-select"
+                  >
+                    <option value="all">All Categories</option>
+                    {listingCategories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={listingStatus}
+                    onChange={(e) => setListingStatus(e.target.value)}
+                    className="dashboard-select"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="expired">Expired</option>
+                    <option value="collected">Collected</option>
+                  </select>
+                  <select
+                    value={listingRestaurant}
+                    onChange={(e) => setListingRestaurant(e.target.value)}
+                    className="dashboard-select"
+                  >
+                    <option value="all">All Restaurants</option>
+                    {restaurantOptions.map((id) => (
+                      <option key={id} value={id}>Restaurant #{id}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="listings-toolbar-right">
+                  <select
+                    value={listingSort}
+                    onChange={(e) => setListingSort(e.target.value)}
+                    className="dashboard-select"
+                  >
+                    <option value="default">Sort: Default</option>
+                    <option value="newest">Newest</option>
+                    <option value="quantityDesc">Quantity (High → Low)</option>
+                    <option value="quantityAsc">Quantity (Low → High)</option>
+                  </select>
+                </div>
+              </div>
+
               {loading ? (
                 <p className="dashboard-empty-text">Loading listings...</p>
-              ) : activeSurpluses.length === 0 ? (
-                <p className="dashboard-empty-text">No active listings at this time.</p>
+              ) : filteredListings.length === 0 ? (
+                <p className="dashboard-empty-text">No listings match the selected filters.</p>
               ) : (
                 <div className="table-container">
                   <table className="dashboard-table">
@@ -443,22 +586,37 @@ const AdminDashboard = () => {
                         <th>Quantity</th>
                         <th>Category</th>
                         <th>Donor</th>
-                        <th>Collector</th>
                         <th>Status</th>
+                        <th>Toggle</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {activeSurpluses.map((s) => (
+                      {filteredListings.map((s) => (
                         <tr key={s.id}>
                           <td className="table-cell-main">{s.title}</td>
                           <td>{s.quantity} {s.quantityUnit || 'kg'}</td>
                           <td>{s.foodCategory || '-'}</td>
                           <td>Restaurant #{s.restaurantId}</td>
-                          <td>{s.assignedCollectorId ? `Collector #${s.assignedCollectorId}` : 'Unassigned'}</td>
                           <td><StatusBadge status={s.status} /></td>
+                          <td>
+                            <label className="toggle-switch">
+                              <input
+                                type="checkbox"
+                                checked={s.status === 'active'}
+                                onChange={() => toggleListingStatus(s.id)}
+                              />
+                              <span className="toggle-slider" />
+                            </label>
+                          </td>
                           <td className="table-actions">
-                            <button className="table-action-btn">Override</button>
+                            <button className="table-action-btn">Edit</button>
+                            <button
+                              className="table-action-btn table-action-btn-danger"
+                              onClick={() => showToast('Remove listing not implemented yet')}
+                            >
+                              Remove
+                            </button>
                           </td>
                         </tr>
                       ))}

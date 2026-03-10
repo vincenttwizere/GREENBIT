@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 const CollectorDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [available, setAvailable] = useState([]);
   const [history, setHistory] = useState([]);
@@ -65,12 +66,28 @@ const CollectorDashboard = () => {
     [available]
   );
 
+  const filteredOpenPickups = useMemo(() => {
+    if (!searchTerm) return openPickups;
+    return openPickups.filter((s) =>
+      s.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.foodCategory?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [openPickups, searchTerm]);
+
+  const filteredActivePickups = useMemo(() => {
+    if (!searchTerm) return activePickups;
+    return activePickups.filter((s) =>
+      s.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.foodCategory?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [activePickups, searchTerm]);
+
   const calculateExpiryCountdown = (expiryTime) => {
     const now = new Date();
     const expiry = new Date(expiryTime);
     const diffMs = expiry - now;
     const diffMins = Math.floor(diffMs / 60000);
-    
+
     if (diffMins < 0) return 'Expired';
     if (diffMins < 60) return `${diffMins}m`;
     if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h`;
@@ -107,8 +124,17 @@ const CollectorDashboard = () => {
 
         <div className="dashboard-header">
           <div>
-            <h1 className="dashboard-title">Collector Dashboard</h1>
+            <h1 className="dashboard-title">Dashboard Overview</h1>
             <p className="dashboard-subtitle">Discover food rescue opportunities and track your impact</p>
+          </div>
+          <div className="dashboard-search-wrapper">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search..."
+              className="dashboard-search"
+            />
           </div>
         </div>
 
@@ -171,7 +197,7 @@ const CollectorDashboard = () => {
               <div className="dashboard-metric-card-large">
                 <div className="metric-icon metric-icon-purple">📦</div>
                 <p className="dashboard-metric-label">Active Pickups</p>
-                <p className="dashboard-metric-value">{activePickups?.length || '0'}</p>
+                <p className="dashboard-metric-value">{filteredActivePickups?.length || '0'}</p>
                 <p className="metric-trend">In progress</p>
               </div>
             </div>
@@ -194,7 +220,7 @@ const CollectorDashboard = () => {
                 <div className="simple-stats">
                   <div className="stat-row">
                     <span>Pending Pickups</span>
-                    <span className="stat-value">{openPickups?.length || 0}</span>
+                    <span className="stat-value">{filteredOpenPickups?.length || 0}</span>
                   </div>
                   <div className="stat-row">
                     <span>My Active Assignments</span>
@@ -243,11 +269,11 @@ const CollectorDashboard = () => {
               <p className="dashboard-card-help">Browse nearby food rescue opportunities</p>
               {loading ? (
                 <p className="dashboard-empty-text">Loading pickups...</p>
-              ) : openPickups.length === 0 ? (
+              ) : filteredOpenPickups.length === 0 ? (
                 <p className="dashboard-empty-text">No open pickups available right now. Check back soon!</p>
               ) : (
                 <div className="pickups-grid">
-                  {openPickups.map((s) => (
+                  {filteredOpenPickups.map((s) => (
                     <div key={s.id} className="pickup-card">
                       <div className="pickup-card-header">
                         <h4>{s.title}</h4>
@@ -286,11 +312,11 @@ const CollectorDashboard = () => {
               <p className="dashboard-card-help">Track your assigned pickups and mark progress</p>
               {loading ? (
                 <p className="dashboard-empty-text">Loading assignments...</p>
-              ) : activePickups.length === 0 ? (
+              ) : filteredActivePickups.length === 0 ? (
                 <p className="dashboard-empty-text">No active pickups assigned right now.</p>
               ) : (
                 <div className="tracking-list">
-                  {activePickups.map((s) => (
+                  {filteredActivePickups.map((s) => (
                     <div key={s.id} className="tracking-card">
                       <div className="tracking-header">
                         <h4>{s.title}</h4>

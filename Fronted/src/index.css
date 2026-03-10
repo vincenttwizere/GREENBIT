@@ -1359,13 +1359,14 @@ header.navbar-header {
   left: 0;
   bottom: 0;
   width: 16rem;
-  background-color: #ffffff;
+  background-color: #f8fafc;
   border-right: 1px solid #e5e7eb;
   padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   overflow-y: auto;
+  box-shadow: 2px 0 12px rgba(15, 23, 42, 0.08);
 }
 
 .sidebar-brand {
@@ -1523,7 +1524,137 @@ header.navbar-header {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .dashboard-header {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.dashboard-search-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 320px;
+}
+
+.dashboard-search {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  font-size: 13px;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-search:focus {
+  outline: none;
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+}
+
+.listings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.listings-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.listings-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .listings-toolbar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.listings-toolbar-left {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.listings-toolbar-right {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dashboard-select {
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  font-size: 13px;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-select:focus {
+  outline: none;
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #d1d5db;
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #16a34a;
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(18px);
 }
 
 @media (min-width: 768px) {
@@ -1987,7 +2118,7 @@ header.navbar-header {
 
 /* metric icon circle style */
 .dashboard-metric-card-large .metric-icon {
-  background-color: #f97316; /* default orange tone */
+  background-color: #16a34a; /* default green tone */
   color: #ffffff;
   width: 3rem;
   height: 3rem;
@@ -2013,8 +2144,8 @@ header.navbar-header {
   left: 0;
   right: 0;
   height: 3px;
-  /* orange gradient similar to screenshot accent */
-  background: linear-gradient(to right, #f97316, #fb923c, #fdba74);
+  /* green gradient accent (matches branding) */
+  background: linear-gradient(to right, #22c55e, #16a34a, #059669);
 }
 
 .metric-icon {
@@ -2023,9 +2154,8 @@ header.navbar-header {
 }
 
 .metric-icon-orange {
-  filter: hue-rotate(0deg);
+  background-color: #16a34a;
 }
-
 /* layout for two charts side by side */
 .dashboard-charts-grid {
   display: grid;

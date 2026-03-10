@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLeaf, faUtensils, faWind, faClipboardList } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from '../../components/Sidebar.jsx';
 import Footer from '../../components/Footer.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
@@ -6,6 +8,7 @@ import api from '../../api/axios.js';
 
 const RestaurantDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
   
   const [impact, setImpact] = useState(null);
   const [form, setForm] = useState({
@@ -120,6 +123,14 @@ const RestaurantDashboard = () => {
   const activeSurpluses = surpluses.filter(s => s.status !== 'expired' && s.status !== 'collected');
   const pendingPickups = surpluses.filter(s => s.status === 'assigned' || s.status === 'pending');
 
+  const filteredActiveSurpluses = useMemo(() => {
+    if (!searchTerm) return activeSurpluses;
+    return activeSurpluses.filter((s) =>
+      s.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.foodCategory?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [activeSurpluses, searchTerm]);
+
   return (
     <div className="page-dashboard">
       <Sidebar />
@@ -128,8 +139,17 @@ const RestaurantDashboard = () => {
 
         <div className="dashboard-header">
           <div>
-            <h1 className="dashboard-title">Restaurant Dashboard</h1>
+            <h1 className="dashboard-title">Dashboard Overview</h1>
             <p className="dashboard-subtitle">Manage food surplus, track impact, and connect with collectors</p>
+          </div>
+          <div className="dashboard-search-wrapper">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search..."
+              className="dashboard-search"
+            />
           </div>
         </div>
 
@@ -178,7 +198,9 @@ const RestaurantDashboard = () => {
           <div className="dashboard-tab-content">
             <div className="dashboard-metrics-grid-4">
               <div className="dashboard-metric-card-large">
-                <div className="metric-icon metric-icon-orange">📦</div>
+                <div className="metric-icon metric-icon-orange">
+                <FontAwesomeIcon icon={faLeaf} />
+              </div>
                 <p className="dashboard-metric-label">Total Food Donated</p>
                 <p className="dashboard-metric-value">{impact?.totalQuantity?.toFixed(1) || '0'} kg</p>
                 <p className="metric-trend">+12% from last month</p>
@@ -198,7 +220,7 @@ const RestaurantDashboard = () => {
               <div className="dashboard-metric-card-large">
                 <div className="metric-icon metric-icon-purple">📈</div>
                 <p className="dashboard-metric-label">Active Listings</p>
-                <p className="dashboard-metric-value">{activeSurpluses?.length || '0'}</p>
+                <p className="dashboard-metric-value">{filteredActiveSurpluses?.length || '0'}</p>
                 <p className="metric-trend">Available now</p>
               </div>
             </div>
@@ -409,7 +431,7 @@ const RestaurantDashboard = () => {
               <p className="dashboard-card-help">Track all your active surplus listings</p>
               {loading ? (
                 <p className="dashboard-empty-text">Loading listings...</p>
-              ) : activeSurpluses.length === 0 ? (
+              ) : filteredActiveSurpluses.length === 0 ? (
                 <p className="dashboard-empty-text">No active listings. Start by adding surplus food.</p>
               ) : (
                 <div className="table-container">
@@ -425,7 +447,7 @@ const RestaurantDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {activeSurpluses.map((s) => (
+                      {filteredActiveSurpluses.map((s) => (
                         <tr key={s.id}>
                           <td className="table-cell-main">{s.title}</td>
                           <td>{s.quantity} {s.quantityUnit || 'kg'}</td>

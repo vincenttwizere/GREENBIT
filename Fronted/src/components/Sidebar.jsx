@@ -3,6 +3,23 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/axios.js';
 import logo from '../assets/greenbit-logo.png';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faTachometerAlt,
+  faPlus,
+  faClipboardList,
+  faMapMarkerAlt,
+  faBell,
+  faHistory,
+  faUser,
+  faTruckMoving,
+  faUsers,
+  faStore,
+  faChartBar,
+  faChartLine,
+  faCog,
+  faQuestionCircle,
+} from '@fortawesome/free-solid-svg-icons';
 
 const Sidebar = () => {
   const { user } = useAuth();
@@ -37,41 +54,41 @@ const Sidebar = () => {
   // Role-specific links
   if (user?.role === 'restaurant') {
     links.push(
-      { label: 'Dashboard', to: '/dashboard/restaurant', icon: '🏠' },
-      { label: 'Add Surplus', to: '/dashboard/restaurant#add-surplus', icon: '➕' },
-      { label: 'Active Listings', to: '/dashboard/restaurant#listings', icon: '📦' },
-      { label: 'Pickup Tracking', to: '/dashboard/restaurant#tracking', icon: '📍' },
-      { label: 'Notifications', to: '/dashboard/restaurant#notifications', icon: '🔔', badge: unreadCount },
-      { label: 'History', to: '/dashboard/restaurant#history', icon: '📊' },
-      { label: 'Profile', to: '/dashboard/restaurant#profile', icon: '👤' }
+      { label: 'Dashboard', to: '/dashboard/restaurant', icon: faTachometerAlt },
+      { label: 'Add Surplus', to: '/dashboard/restaurant#add-surplus', icon: faPlus },
+      { label: 'Active Listings', to: '/dashboard/restaurant#listings', icon: faClipboardList },
+      { label: 'Pickup Tracking', to: '/dashboard/restaurant#tracking', icon: faMapMarkerAlt },
+      { label: 'Notifications', to: '/dashboard/restaurant#notifications', icon: faBell, badge: unreadCount },
+      { label: 'History', to: '/dashboard/restaurant#history', icon: faHistory },
+      { label: 'Profile', to: '/dashboard/restaurant#profile', icon: faUser }
     );
   }
   if (user?.role === 'collector') {
     links.push(
-      { label: 'Dashboard', to: '/dashboard/collector', icon: '🏠' },
-      { label: 'Available Pickups', to: '/dashboard/collector#available', icon: '📋' },
-      { label: 'Active Pickups', to: '/dashboard/collector#active', icon: '🚚' },
-      { label: 'Notifications', to: '/dashboard/collector#notifications', icon: '🔔', badge: unreadCount },
-      { label: 'History', to: '/dashboard/collector#history', icon: '📊' },
-      { label: 'Profile', to: '/dashboard/collector#profile', icon: '👤' }
+      { label: 'Dashboard', to: '/dashboard/collector', icon: faTachometerAlt },
+      { label: 'Available Pickups', to: '/dashboard/collector#available', icon: faClipboardList },
+      { label: 'Active Pickups', to: '/dashboard/collector#active', icon: faTruckMoving },
+      { label: 'Notifications', to: '/dashboard/collector#notifications', icon: faBell, badge: unreadCount },
+      { label: 'History', to: '/dashboard/collector#history', icon: faHistory },
+      { label: 'Profile', to: '/dashboard/collector#profile', icon: faUser }
     );
   }
   if (user?.role === 'admin') {
     links.push(
-      { label: 'Dashboard', to: '/dashboard/admin', icon: '📊' },
-      { label: 'Donors', to: '/dashboard/admin#donors', icon: '🏪' },
-      { label: 'Collectors', to: '/dashboard/admin#collectors', icon: '👥' },
-      { label: 'Listings', to: '/dashboard/admin#listings', icon: '📦' },
-      { label: 'Notifications', to: '/dashboard/admin#notifications', icon: '🔔', badge: unreadCount },
-      { label: 'Reports', to: '/dashboard/admin#reports', icon: '📈' },
-      { label: 'Settings', to: '/dashboard/admin#settings', icon: '⚙️' }
+      { label: 'Dashboard', to: '/dashboard/admin', icon: faChartLine },
+      { label: 'Donors', to: '/dashboard/admin#donors', icon: faStore },
+      { label: 'Collectors', to: '/dashboard/admin#collectors', icon: faUsers },
+      { label: 'Listings', to: '/dashboard/admin#listings', icon: faClipboardList },
+      { label: 'Notifications', to: '/dashboard/admin#notifications', icon: faBell, badge: unreadCount },
+      { label: 'Reports', to: '/dashboard/admin#reports', icon: faChartBar },
+      { label: 'Settings', to: '/dashboard/admin#settings', icon: faCog }
     );
   }
 
   // Utility links for all users
   utilityLinks.push(
-    { label: 'Settings', to: '#settings', icon: '⚙️', isutility: true },
-    { label: 'Help', to: '#help', icon: '❓', isutility: true }
+    { label: 'Settings', to: '#settings', icon: faCog, isutility: true },
+    { label: 'Help', to: '#help', icon: faQuestionCircle, isutility: true }
   );
 
   return (
@@ -87,7 +104,9 @@ const Sidebar = () => {
             to={l.to}
             className={`sidebar-link ${isActive(l.to) ? 'active' : ''}`}
           >
-            <span className="sidebar-link-icon">{l.icon}</span>
+            <span className="sidebar-link-icon">
+              <FontAwesomeIcon icon={l.icon} fixedWidth />
+            </span>
             <span className="sidebar-link-text">{l.label}</span>
             {l.badge && l.badge > 0 && (
               <span className="sidebar-link-badge">{l.badge}</span>
@@ -105,7 +124,9 @@ const Sidebar = () => {
               to={l.to}
               className={`sidebar-link ${isActive(l.to) ? 'active' : ''}`}
             >
-              <span className="sidebar-link-icon">{l.icon}</span>
+              <span className="sidebar-link-icon">
+                <FontAwesomeIcon icon={l.icon} fixedWidth />
+              </span>
               <span className="sidebar-link-text">{l.label}</span>
             </Link>
           ))}
