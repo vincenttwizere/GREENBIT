@@ -45,7 +45,14 @@ const Sidebar = () => {
     }
   }, [user?.id]);
 
-  const isActive = (path) => location.pathname.startsWith(path);
+  const isActive = (to) => {
+    const [path, hash] = to.split('#');
+    if (hash) {
+      if (path && !location.pathname.startsWith(path)) return false;
+      return location.hash === `#${hash}`;
+    }
+    return location.pathname.startsWith(to);
+  };
 
   const { logout } = useAuth();
   const links = [];
@@ -85,10 +92,10 @@ const Sidebar = () => {
     );
   }
 
-  // Utility links for all users
+  // Utility links for all users (stay within current dashboard route)
   utilityLinks.push(
-    { label: 'Settings', to: '#settings', icon: faCog, isutility: true },
-    { label: 'Help', to: '#help', icon: faQuestionCircle, isutility: true }
+    { label: 'Settings', to: `${location.pathname}#settings`, icon: faCog, isutility: true },
+    { label: 'Help', to: `${location.pathname}#help`, icon: faQuestionCircle, isutility: true }
   );
 
   return (

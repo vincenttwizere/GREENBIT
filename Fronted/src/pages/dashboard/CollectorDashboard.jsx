@@ -1,12 +1,33 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import api from '../../api/axios.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 const CollectorDashboard = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+
+  const changeTab = (tab, hash) => {
+    setActiveTab(tab);
+    navigate(`${location.pathname}#${hash}`, { replace: true });
+  };
+
+  useEffect(() => {
+    const hash = location.hash || '#overview';
+    const map = {
+      '#overview': 'overview',
+      '#available': 'available',
+      '#active': 'active',
+      '#history': 'history',
+      '#profile': 'profile',
+    };
+    const tab = map[hash] || 'overview';
+    if (tab !== activeTab) setActiveTab(tab);
+  }, [location.hash]);
   const [searchTerm, setSearchTerm] = useState('');
 
   const [available, setAvailable] = useState([]);
@@ -136,39 +157,6 @@ const CollectorDashboard = () => {
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="dashboard-tabs">
-          <button
-            className={`dashboard-tab ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'available' ? 'active' : ''}`}
-            onClick={() => setActiveTab('available')}
-          >
-            Available Pickups
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'active' ? 'active' : ''}`}
-            onClick={() => setActiveTab('active')}
-          >
-            Active Pickups
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'history' ? 'active' : ''}`}
-            onClick={() => setActiveTab('history')}
-          >
-            History
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profile')}
-          >
-            Profile
-          </button>
-        </div>
 
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (

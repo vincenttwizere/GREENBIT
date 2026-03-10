@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLeaf, faUtensils, faWind, faClipboardList } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from '../../components/Sidebar.jsx';
@@ -6,8 +7,29 @@ import StatusBadge from '../../components/StatusBadge.jsx';
 import api from '../../api/axios.js';
 
 const RestaurantDashboard = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
+
+  const changeTab = (tab, hash) => {
+    setActiveTab(tab);
+    navigate(`${location.pathname}#${hash}`, { replace: true });
+  };
+
+  useEffect(() => {
+    const hash = location.hash || '#overview';
+    const map = {
+      '#overview': 'overview',
+      '#add-surplus': 'add-surplus',
+      '#listings': 'listings',
+      '#tracking': 'tracking',
+      '#history': 'history',
+      '#profile': 'profile',
+    };
+    const tab = map[hash] || 'overview';
+    if (tab !== activeTab) setActiveTab(tab);
+  }, [location.hash]);
   
   const [impact, setImpact] = useState(null);
   const [form, setForm] = useState({
@@ -152,45 +174,6 @@ const RestaurantDashboard = () => {
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="dashboard-tabs">
-          <button
-            className={`dashboard-tab ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'add-surplus' ? 'active' : ''}`}
-            onClick={() => setActiveTab('add-surplus')}
-          >
-            + Add Surplus
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'listings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('listings')}
-          >
-            Active Listings
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'tracking' ? 'active' : ''}`}
-            onClick={() => setActiveTab('tracking')}
-          >
-            Pickup Tracking
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'history' ? 'active' : ''}`}
-            onClick={() => setActiveTab('history')}
-          >
-            History
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profile')}
-          >
-            Profile
-          </button>
-        </div>
 
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (

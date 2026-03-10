@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLeaf, faUtensils, faUsers, faWind } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from '../../components/Sidebar.jsx';
@@ -6,7 +7,29 @@ import StatusBadge from '../../components/StatusBadge.jsx';
 import api from '../../api/axios.js';
 
 const AdminDashboard = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+
+  const changeTab = (tab, hash) => {
+    setActiveTab(tab);
+    navigate(`${location.pathname}#${hash}`, { replace: true });
+  };
+
+  useEffect(() => {
+    const hash = location.hash || '#overview';
+    const hashMap = {
+      '#overview': 'overview',
+      '#donors': 'donors',
+      '#collectors': 'collectors',
+      '#listings': 'listings',
+      '#reports': 'reports',
+      '#notifications': 'notifications',
+      '#settings': 'settings',
+    };
+    const tab = hashMap[hash] || 'overview';
+    if (tab !== activeTab) setActiveTab(tab);
+  }, [location.hash]);
   
   const [users, setUsers] = useState([]);
   const [surpluses, setSurpluses] = useState([]);
@@ -75,6 +98,63 @@ const AdminDashboard = () => {
       deliveriesWidth: `${(totalDeliveries / max) * 100}%`,
     };
   }, [analytics]);
+
+  const roleDistribution = useMemo(() => {
+    const counts = { restaurant: 0, collector: 0, admin: 0 };
+    users.forEach((u) => {
+      if (u.role in counts) counts[u.role] += 1;
+    });
+    return counts;
+  }, [users]);
+
+  const categoryDistribution = useMemo(() => {
+    const counts = {};
+    surpluses.forEach((s) => {
+      const cat = s.foodCategory || 'Other';
+      counts[cat] = (counts[cat] || 0) + (s.quantity || 0);
+    });
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const palette = ['#16A34A', '#3b82f6', '#f97316', '#a855f7', '#22c55e', '#f59e0b'];
+    return entries.slice(0, 6).map(([label, value], index) => ({
+      id: label,
+      label,
+      value,
+      color: palette[index % palette.length],
+    }));
+  }, [surpluses]);
+
+  const DonutChart = ({ segments, size = 160, strokeWidth = 22 }) => {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+
+    let offset = 0;
+    const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
+
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <g transform={`translate(${size / 2}, ${size / 2})`}>
+          {segments.map((seg) => {
+            const dash = (seg.value / total) * circumference;
+            const dashOffset = offset;
+            offset += dash;
+            return (
+              <circle
+                key={seg.id}
+                r={radius}
+                fill="transparent"
+                stroke={seg.color}
+                strokeWidth={strokeWidth}
+                strokeDasharray={`${dash} ${circumference}`}
+                strokeDashoffset={-dashOffset}
+                strokeLinecap="round"
+              />
+            );
+          })}
+          <circle r={radius - strokeWidth / 2} fill="#ffffff" />
+        </g>
+      </svg>
+    );
+  };
 
   // Filtered data
   const filteredUsers = useMemo(() => {
@@ -174,51 +254,6 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="dashboard-tabs">
-          <button
-            className={`dashboard-tab ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'donors' ? 'active' : ''}`}
-            onClick={() => setActiveTab('donors')}
-          >
-            Donors
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'collectors' ? 'active' : ''}`}
-            onClick={() => setActiveTab('collectors')}
-          >
-            Collectors
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'listings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('listings')}
-          >
-            Listings
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'reports' ? 'active' : ''}`}
-            onClick={() => setActiveTab('reports')}
-          >
-            Reports
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'notifications' ? 'active' : ''}`}
-            onClick={() => setActiveTab('notifications')}
-          >
-            🔔 Notifications
-          </button>
-          <button
-            className={`dashboard-tab ${activeTab === 'settings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('settings')}
-          >
-            Settings
-          </button>
-        </div>
 
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
@@ -254,12 +289,55 @@ const AdminDashboard = () => {
             {/* quick charts row similar to screenshot layout */}
             <div className="dashboard-charts-grid" style={{ marginTop: '1.5rem' }}>
               <div className="dashboard-chart-card">
-                <h3 className="dashboard-card-title">Sales Trends (Last 7 Days)</h3>
-                <div className="chart-placeholder">Chart placeholder</div>
+                <h3 className="dashboard-card-title">Role Distribution</h3>
+                <div className="chart-inner">
+                  <DonutChart
+                    segments={[
+                      { id: 'restaurant', label: 'Donors', value: roleDistribution.restaurant, color: '#16A34A' },
+                      { id: 'collector', label: 'Collectors', value: roleDistribution.collector, color: '#3b82f6' },
+                      { id: 'admin', label: 'Admins', value: roleDistribution.admin, color: '#a855f7' },
+                    ]}
+                  />
+                  <div className="chart-legend">
+                    {[
+                      { label: 'Donors', value: roleDistribution.restaurant, color: '#16A34A' },
+                      { label: 'Collectors', value: roleDistribution.collector, color: '#3b82f6' },
+                      { label: 'Admins', value: roleDistribution.admin, color: '#a855f7' },
+                    ].map((item) => (
+                      <div key={item.label} className="chart-legend-item">
+                        <span className="chart-legend-dot" style={{ backgroundColor: item.color }} />
+                        <span>{item.label}</span>
+                        <span className="chart-legend-value">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
               <div className="dashboard-chart-card">
-                <h3 className="dashboard-card-title">Top 10 Selling Products</h3>
-                <div className="chart-placeholder">Chart placeholder</div>
+                <h3 className="dashboard-card-title">Impact Comparison</h3>
+                <div className="chart-inner">
+                  <div className="chart-bar-row">
+                    <span>Meals Saved</span>
+                    <span>{analytics?.meals?.toFixed(0) || 0}</span>
+                  </div>
+                  <div className="chart-bar-bg">
+                    <div className="chart-bar chart-bar-meals" style={{ width: chartData?.mealsWidth || '0%' }} />
+                  </div>
+                  <div className="chart-bar-row">
+                    <span>CO₂ Saved</span>
+                    <span>{analytics?.co2Saved?.toFixed(1) || 0} kg</span>
+                  </div>
+                  <div className="chart-bar-bg">
+                    <div className="chart-bar chart-bar-co2" style={{ width: chartData?.co2Width || '0%' }} />
+                  </div>
+                  <div className="chart-bar-row">
+                    <span>Deliveries</span>
+                    <span>{analytics?.totalDeliveries || 0}</span>
+                  </div>
+                  <div className="chart-bar-bg">
+                    <div className="chart-bar chart-bar-deliveries" style={{ width: chartData?.deliveriesWidth || '0%' }} />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -632,51 +710,48 @@ const AdminDashboard = () => {
           <div className="dashboard-tab-content">
             <div className="dashboard-grid-two">
               <div className="dashboard-card">
-                <h3 className="dashboard-card-title">📊 Waste Reduction Trends</h3>
-                <p className="dashboard-card-help">Monthly food diversion metrics</p>
-                <div className="admin-chart">
-                  <div>
-                    <div className="admin-chart-row">
-                      <span>This Month</span>
-                      <span>{analytics?.totalQuantity?.toFixed(1) || 0} kg</span>
-                    </div>
-                    <div className="admin-chart-bar-bg">
-                      <div
-                        className="admin-chart-bar admin-chart-bar-meals"
-                        style={{ width: '70%' }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="admin-chart-row">
-                      <span>This Quarter</span>
-                      <span>{(analytics?.totalQuantity * 3)?.toFixed(1) || 0} kg</span>
-                    </div>
-                    <div className="admin-chart-bar-bg">
-                      <div
-                        className="admin-chart-bar admin-chart-bar-co2"
-                        style={{ width: '100%' }}
-                      />
-                    </div>
+                <h3 className="dashboard-card-title">📊 Category Breakdown</h3>
+                <p className="dashboard-card-help">Categories by total quantity</p>
+                <div className="chart-inner">
+                  <DonutChart segments={categoryDistribution} />
+                  <div className="chart-legend">
+                    {categoryDistribution.map((item) => (
+                      <div key={item.id} className="chart-legend-item">
+                        <span className="chart-legend-dot" style={{ backgroundColor: item.color }} />
+                        <span>{item.label}</span>
+                        <span className="chart-legend-value">{item.value.toFixed(1)} kg</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
 
               <div className="dashboard-card">
-                <h3 className="dashboard-card-title">👥 Collector Performance</h3>
-                <p className="dashboard-card-help">Top collectors this month</p>
-                <div className="simple-stats">
-                  <div className="stat-row">
-                    <span>Most Active Collector</span>
-                    <span className="stat-value">15 pickups</span>
+                <h3 className="dashboard-card-title">📈 Monthly Impact</h3>
+                <p className="dashboard-card-help">Compare key metrics month over month</p>
+                <div className="chart-inner" style={{ flexDirection: 'column', gap: '1rem' }}>
+                  <div className="chart-bar-row">
+                    <span>Meals Saved</span>
+                    <span>{analytics?.meals?.toFixed(0) || 0}</span>
                   </div>
-                  <div className="stat-row">
-                    <span>Avg. Collection Time</span>
-                    <span className="stat-value">45 mins</span>
+                  <div className="chart-bar-bg">
+                    <div className="chart-bar chart-bar-meals" style={{ width: chartData?.mealsWidth || '0%' }} />
                   </div>
-                  <div className="stat-row">
-                    <span>Success Rate</span>
-                    <span className="stat-value">98%</span>
+
+                  <div className="chart-bar-row">
+                    <span>CO₂ Saved</span>
+                    <span>{analytics?.co2Saved?.toFixed(1) || 0} kg</span>
+                  </div>
+                  <div className="chart-bar-bg">
+                    <div className="chart-bar chart-bar-co2" style={{ width: chartData?.co2Width || '0%' }} />
+                  </div>
+
+                  <div className="chart-bar-row">
+                    <span>Total Deliveries</span>
+                    <span>{analytics?.totalDeliveries || 0}</span>
+                  </div>
+                  <div className="chart-bar-bg">
+                    <div className="chart-bar chart-bar-deliveries" style={{ width: chartData?.deliveriesWidth || '0%' }} />
                   </div>
                 </div>
               </div>
