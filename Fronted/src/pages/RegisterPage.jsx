@@ -22,7 +22,7 @@ const RegisterPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const role = params.get('role');
-    if (role && ['restaurant', 'collector'].includes(role)) {
+    if (role && ['restaurant', 'collector', 'admin'].includes(role)) {
       setForm((prev) => ({ ...prev, role }));
     }
   }, [location.search]);
@@ -64,8 +64,7 @@ const RegisterPage = () => {
         <div className="auth-card">
           <h1 className="auth-title">Join Green Bit</h1>
           <p className="auth-subtitle">
-            Create an account as a restaurant or collector to start redistributing surplus
-            food.
+            Create an account as a restaurant, collector, or admin to start managing surplus food.
           </p>
           {error && (
             <div className="auth-error">
@@ -141,6 +140,7 @@ const RegisterPage = () => {
                 >
                   <option value="restaurant">Restaurant / Hotel</option>
                   <option value="collector">Collector</option>
+                  <option value="admin">Admin</option>
                 </select>
               </div>
               <div>

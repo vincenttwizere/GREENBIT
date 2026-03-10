@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '../../components/Sidebar.jsx';
-import Footer from '../../components/Footer.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import api from '../../api/axios.js';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -124,7 +123,6 @@ const CollectorDashboard = () => {
 
         <div className="dashboard-header">
           <div>
-            <h1 className="dashboard-title">Dashboard Overview</h1>
             <p className="dashboard-subtitle">Discover food rescue opportunities and track your impact</p>
           </div>
           <div className="dashboard-search-wrapper">
@@ -265,7 +263,6 @@ const CollectorDashboard = () => {
         {activeTab === 'available' && (
           <div className="dashboard-tab-content">
             <div className="dashboard-card">
-              <h2 className="dashboard-card-title">Available Pickups</h2>
               <p className="dashboard-card-help">Browse nearby food rescue opportunities</p>
               {loading ? (
                 <p className="dashboard-empty-text">Loading pickups...</p>
@@ -308,7 +305,6 @@ const CollectorDashboard = () => {
         {activeTab === 'active' && (
           <div className="dashboard-tab-content">
             <div className="dashboard-card">
-              <h2 className="dashboard-card-title">My Active Pickups</h2>
               <p className="dashboard-card-help">Track your assigned pickups and mark progress</p>
               {loading ? (
                 <p className="dashboard-empty-text">Loading assignments...</p>
@@ -378,7 +374,6 @@ const CollectorDashboard = () => {
         {activeTab === 'history' && (
           <div className="dashboard-tab-content">
             <div className="dashboard-card">
-              <h2 className="dashboard-card-title">Delivery History</h2>
               <p className="dashboard-card-help">Your past collections and impact</p>
               {loading ? (
                 <p className="dashboard-empty-text">Loading history...</p>
@@ -419,7 +414,6 @@ const CollectorDashboard = () => {
           <div className="dashboard-tab-content">
             <div className="dashboard-card">
               <div className="profile-header">
-                <h2 className="dashboard-card-title">My Profile</h2>
                 <button onClick={() => setEditingProfile(!editingProfile)} className="edit-profile-btn">
                   {editingProfile ? '✕ Cancel' : '✎ Edit'}
                 </button>
@@ -491,7 +485,6 @@ const CollectorDashboard = () => {
           </div>
         )}
       </main>
-      <Footer />
     </div>
   );
 };

@@ -6,7 +6,7 @@ import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 
 const LoginPage = () => {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '', role: 'collector' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
@@ -25,8 +25,7 @@ const LoginPage = () => {
     setError('');
     setSubmitting(true);
     try {
-      const { data } = await api.post('/auth/login', form);
-      login(data.user, data.token);
+      const { data } = await api.post('/auth/login', form);      login(data.user, data.token);
 
       if (data.user.role === 'restaurant') {
         navigate('/dashboard/restaurant', { replace: true });
@@ -94,6 +93,20 @@ const LoginPage = () => {
                 className="auth-input"
                 required
               />
+            </div>
+            <div>
+              <label htmlFor="role" className="auth-label">Sign in as</label>
+              <select
+                id="role"
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className="auth-input"
+              >
+                <option value="collector">Collector</option>
+                <option value="restaurant">Donor (Restaurant/Hotel)</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
             <button
               type="submit"

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLeaf, faUtensils, faUsers, faWind } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from '../../components/Sidebar.jsx';
-import Footer from '../../components/Footer.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import api from '../../api/axios.js';
 
@@ -798,7 +797,6 @@ const AdminDashboard = () => {
           </div>
         )}
       </main>
-      <Footer />
     </div>
   );
 };
