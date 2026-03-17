@@ -40,5 +40,26 @@ router.get(
   collectorController.getDeliveryHistory
 );
 
+router.get(
+  '/impact',
+  authMiddleware,
+  roleMiddleware('collector'),
+  collectorController.getImpactSummary
+);
+
+router.get(
+  '/notifications',
+  authMiddleware,
+  roleMiddleware('collector'),
+  collectorController.getNotifications
+);
+
+router.get(
+  '/profile',
+  authMiddleware,
+  roleMiddleware('collector'),
+  collectorController.getProfile
+);
+
 module.exports = router;
 

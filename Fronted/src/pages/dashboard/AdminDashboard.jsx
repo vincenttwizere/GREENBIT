@@ -88,6 +88,17 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateUserStatus = async (id, status) => {
+    try {
+      await api.put(`/admin/users/${id}/status`, { status });
+      showToast(`✓ Account ${status}`);
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+      showToast('✗ Failed to update status.');
+    }
+  };
+
   const chartData = useMemo(() => {
     if (!analytics) return null;
     const { meals, co2Saved, totalDeliveries } = analytics;
@@ -174,8 +185,15 @@ const AdminDashboard = () => {
   const donors = useMemo(() => filteredUsers.filter(u => u.role === 'restaurant'), [filteredUsers]);
   const collectors = useMemo(() => filteredUsers.filter(u => u.role === 'collector'), [filteredUsers]);
   
-  const expiredSurpluses = useMemo(() => surpluses.filter(s => s.status === 'expired'), [surpluses]);
-  const activeSurpluses = useMemo(() => surpluses.filter(s => s.status !== 'expired' && s.status !== 'collected'), [surpluses]);
+  const now = new Date();
+  const expiredSurpluses = useMemo(
+    () => surpluses.filter((s) => new Date(s.expiryTime) < now && s.status !== 'delivered'),
+    [surpluses]
+  );
+  const activeSurpluses = useMemo(
+    () => surpluses.filter((s) => s.status !== 'delivered' && new Date(s.expiryTime) >= now),
+    [surpluses]
+  );
 
   const listingCategories = useMemo(() => {
     const cats = [...new Set(surpluses.map(s => s.foodCategory).filter(Boolean))];
@@ -204,7 +222,19 @@ const AdminDashboard = () => {
     }
 
     if (listingStatus !== 'all') {
-      list = list.filter(s => s.status === listingStatus);
+      if (listingStatus === 'active') {
+        list = list.filter(
+          (s) => s.status !== 'delivered' && new Date(s.expiryTime) >= now
+        );
+      } else if (listingStatus === 'expired') {
+        list = list.filter(
+          (s) => new Date(s.expiryTime) < now && s.status !== 'delivered'
+        );
+      } else if (listingStatus === 'collected') {
+        list = list.filter((s) => s.status === 'delivered');
+      } else {
+        list = list.filter((s) => s.status === listingStatus);
+      }
     }
 
     if (listingRestaurant !== 'all') {
@@ -223,10 +253,10 @@ const AdminDashboard = () => {
   }, [surpluses, listingSearch, listingCategory, listingStatus, listingRestaurant, listingSort]);
 
   const toggleListingStatus = (id) => {
-    setSurpluses(prev =>
-      prev.map(s =>
+    setSurpluses((prev) =>
+      prev.map((s) =>
         s.id === id
-          ? { ...s, status: s.status === 'active' ? 'expired' : 'active' }
+          ? { ...s, status: s.status === 'delivered' ? 'assigned' : 'delivered' }
           : s
       )
     );
@@ -472,6 +502,8 @@ const AdminDashboard = () => {
                         <th>Name</th>
                         <th>Email</th>
                         <th>Location</th>
+                        <th>Status</th>
+                        <th>Documents</th>
                         <th>Food Donated</th>
                         <th>Listings</th>
                         <th>Actions</th>
@@ -483,13 +515,63 @@ const AdminDashboard = () => {
                           <td className="table-cell-main">{d.name}</td>
                           <td>{d.email}</td>
                           <td>{d.location || 'N/A'}</td>
+                          <td>{d.status || 'pending'}</td>
                           <td>
-                            {surpluses.filter(s => s.restaurantId === d.id).reduce((sum, s) => sum + (s.quantity || 0), 0).toFixed(1)} kg
+                            {d.businessLicenseUrl && (
+                              <a
+                                href={d.businessLicenseUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="table-link"
+                              >
+                                License
+                              </a>
+                            )}
+                            {d.registrationDocUrl && (
+                              <a
+                                href={d.registrationDocUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="table-link"
+                                style={{ marginLeft: '0.5rem' }}
+                              >
+                                Reg Doc
+                              </a>
+                            )}
                           </td>
-                          <td>{surpluses.filter(s => s.restaurantId === d.id).length}</td>
+                          <td>
+                            {surpluses
+                              .filter((s) => s.restaurantId === d.id)
+                              .reduce((sum, s) => sum + (s.quantity || 0), 0)
+                              .toFixed(1)}
+                            {' '}kg
+                          </td>
+                          <td>{surpluses.filter((s) => s.restaurantId === d.id).length}</td>
                           <td className="table-actions">
-                            <button className="table-action-btn">View</button>
-                            <button className="table-action-btn">Edit</button>
+                            {d.status !== 'approved' && (
+                              <>
+                                <button
+                                  className="table-action-btn"
+                                  onClick={() => handleUpdateUserStatus(d.id, 'approved')}
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  className="table-action-btn"
+                                  onClick={() => handleUpdateUserStatus(d.id, 'rejected')}
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                            {d.status === 'approved' && (
+                              <button
+                                className="table-action-btn"
+                                onClick={() => handleUpdateUserStatus(d.id, 'rejected')}
+                              >
+                                Reject
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -680,7 +762,7 @@ const AdminDashboard = () => {
                             <label className="toggle-switch">
                               <input
                                 type="checkbox"
-                                checked={s.status === 'active'}
+                                checked={s.status !== 'delivered'}
                                 onChange={() => toggleListingStatus(s.id)}
                               />
                               <span className="toggle-slider" />

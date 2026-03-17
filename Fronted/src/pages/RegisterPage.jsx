@@ -15,6 +15,12 @@ const RegisterPage = () => {
     password: '',
     role: 'restaurant',
     location: '',
+    address: '',
+    contactNumber: '',
+    foodType: '',
+    operatingHours: '',
+    businessLicenseFile: null,
+    registrationDocFile: null,
   });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -28,7 +34,13 @@ const RegisterPage = () => {
   }, [location.search]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, files, type } = e.target;
+
+    if (type === 'file') {
+      setForm((prev) => ({ ...prev, [name]: files?.[0] || null }));
+      return;
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -36,9 +48,33 @@ const RegisterPage = () => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
+
     try {
-      const payload = { ...form };
-      const { data } = await api.post('/auth/register', payload);
+      const formData = new FormData();
+      formData.append('name', form.name);
+      formData.append('email', form.email);
+      formData.append('password', form.password);
+      formData.append('role', form.role);
+      formData.append('location', form.location);
+
+      if (form.role === 'restaurant') {
+        formData.append('address', form.address);
+        formData.append('contactNumber', form.contactNumber);
+        formData.append('foodType', form.foodType);
+        formData.append('operatingHours', form.operatingHours);
+
+        if (form.businessLicenseFile) {
+          formData.append('businessLicense', form.businessLicenseFile);
+        }
+        if (form.registrationDocFile) {
+          formData.append('registrationDoc', form.registrationDocFile);
+        }
+      }
+
+      const { data } = await api.post('/auth/register', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
       login(data.user, data.token);
 
       if (data.user.role === 'restaurant') {
@@ -161,6 +197,105 @@ const RegisterPage = () => {
                 />
               </div>
             </div>
+
+            {form.role === 'restaurant' && (
+              <> 
+                <div>
+                  <label htmlFor="address" className="auth-label">
+                    Address
+                  </label>
+                  <input
+                    id="address"
+                    name="address"
+                    type="text"
+                    value={form.address}
+                    onChange={handleChange}
+                    className="auth-input"
+                    placeholder="Street address"
+                    required
+                  />
+                </div>
+                <div className="auth-grid-two">
+                  <div>
+                    <label htmlFor="contactNumber" className="auth-label">
+                      Contact Number
+                    </label>
+                    <input
+                      id="contactNumber"
+                      name="contactNumber"
+                      type="tel"
+                      value={form.contactNumber}
+                      onChange={handleChange}
+                      className="auth-input"
+                      placeholder="+123 456 7890"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="foodType" className="auth-label">
+                      Type of Food
+                    </label>
+                    <input
+                      id="foodType"
+                      name="foodType"
+                      type="text"
+                      value={form.foodType}
+                      onChange={handleChange}
+                      className="auth-input"
+                      placeholder="e.g. Cooked, Bakery, Produce"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="operatingHours" className="auth-label">
+                    Operating Hours
+                  </label>
+                  <input
+                    id="operatingHours"
+                    name="operatingHours"
+                    type="text"
+                    value={form.operatingHours}
+                    onChange={handleChange}
+                    className="auth-input"
+                    placeholder="e.g. 08:00 - 18:00"
+                    required
+                  />
+                </div>
+
+                <div className="auth-grid-two">
+                  <div>
+                    <label htmlFor="businessLicenseFile" className="auth-label">
+                      Business license
+                    </label>
+                    <input
+                      id="businessLicenseFile"
+                      name="businessLicenseFile"
+                      type="file"
+                      onChange={handleChange}
+                      className="auth-input"
+                      accept="image/*,application/pdf"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="registrationDocFile" className="auth-label">
+                      Registration document
+                    </label>
+                    <input
+                      id="registrationDocFile"
+                      name="registrationDocFile"
+                      type="file"
+                      onChange={handleChange}
+                      className="auth-input"
+                      accept="image/*,application/pdf"
+                      required
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
             <button
               type="submit"
               disabled={submitting}

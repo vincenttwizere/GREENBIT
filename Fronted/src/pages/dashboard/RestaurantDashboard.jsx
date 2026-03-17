@@ -49,9 +49,25 @@ const RestaurantDashboard = () => {
   const [pickupHistory, setPickupHistory] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [profile, setProfile] = useState(null);
-  
+  const isRestaurantApproved = profile?.status === 'approved';
+  const [editingSurplusId, setEditingSurplusId] = useState(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    foodCategory: 'Cooked Meals',
+    quantity: '',
+    quantityUnit: 'kg',
+    expiryDateTime: '',
+    pickupWindowStart: '',
+    pickupWindowEnd: '',
+    storageType: 'Room Temp',
+    specialInstructions: '',
+    photoUrl: '',
+  });
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [toast, setToast] = useState('');
   const [editingProfile, setEditingProfile] = useState(false);
 
@@ -85,6 +101,22 @@ const RestaurantDashboard = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  if (!loading && profile && !isRestaurantApproved) {
+    return (
+      <div className="page-dashboard">
+        <Sidebar />
+        <main className="dashboard-main">
+          <div className="dashboard-card">
+            <h2 className="dashboard-card-title">Account Under Review</h2>
+            <p className="dashboard-card-help">
+              Your account is under review. You will gain access once approved.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -129,6 +161,90 @@ const RestaurantDashboard = () => {
     }
   };
 
+  const startEditingSurplus = (surplus) => {
+    setEditingSurplusId(surplus.id);
+    setEditForm({
+      title: surplus.title || '',
+      foodCategory: surplus.foodCategory || 'Cooked Meals',
+      quantity: surplus.quantity || '',
+      quantityUnit: surplus.quantityUnit || 'kg',
+      expiryDateTime: surplus.expiryTime ? new Date(surplus.expiryTime).toISOString().slice(0, 16) : '',
+      pickupWindowStart: surplus.pickupWindowStart || '',
+      pickupWindowEnd: surplus.pickupDeadline || '',
+      storageType: surplus.storageType || 'Room Temp',
+      specialInstructions: surplus.specialInstructions || '',
+      photoUrl: surplus.photoUrl || '',
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingSurplusId(null);
+    setEditForm({
+      title: '',
+      foodCategory: 'Cooked Meals',
+      quantity: '',
+      quantityUnit: 'kg',
+      expiryDateTime: '',
+      pickupWindowStart: '',
+      pickupWindowEnd: '',
+      storageType: 'Room Temp',
+      specialInstructions: '',
+      photoUrl: '',
+    });
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const submitEdit = async (e) => {
+    e.preventDefault();
+    if (!editingSurplusId) return;
+
+    setEditLoading(true);
+    try {
+      const payload = {
+        title: editForm.title,
+        foodCategory: editForm.foodCategory,
+        quantity: parseFloat(editForm.quantity || '0'),
+        quantityUnit: editForm.quantityUnit,
+        expiryTime: editForm.expiryDateTime,
+        pickupWindowStart: editForm.pickupWindowStart,
+        pickupDeadline: editForm.pickupWindowEnd,
+        storageType: editForm.storageType,
+        specialInstructions: editForm.specialInstructions,
+        photoUrl: editForm.photoUrl,
+      };
+
+      await api.put(`/restaurant/surplus/${editingSurplusId}`, payload);
+      showToast('✓ Listing updated successfully');
+      cancelEditing();
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+      showToast('✗ Failed to update listing. Please try again.');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const deleteSurplus = async (id) => {
+    if (!window.confirm('Delete this listing? This cannot be undone.')) return;
+
+    setDeletingId(id);
+    try {
+      await api.delete(`/restaurant/surplus/${id}`);
+      showToast('✓ Listing removed');
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+      showToast('✗ Failed to delete listing. Please try again.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const calculateExpiryCountdown = (expiryTime) => {
     const now = new Date();
     const expiry = new Date(expiryTime);
@@ -141,7 +257,7 @@ const RestaurantDashboard = () => {
     return `${Math.floor(diffMins / 1440)}d`;
   };
 
-  const activeSurpluses = surpluses.filter(s => s.status !== 'expired' && s.status !== 'collected');
+  const activeSurpluses = surpluses.filter(s => s.status !== 'delivered');
   const pendingPickups = surpluses.filter(s => s.status === 'assigned' || s.status === 'pending');
 
   const filteredActiveSurpluses = useMemo(() => {
@@ -233,7 +349,7 @@ const RestaurantDashboard = () => {
                   </div>
                   <div className="stat-row">
                     <span>Completed</span>
-                    <span className="stat-value">{surpluses?.filter(s => s.status === 'collected')?.length || 0}</span>
+                    <span className="stat-value">{surpluses?.filter(s => s.status === 'delivered')?.length || 0}</span>
                   </div>
                   <div className="stat-row">
                     <span>Total Diverted</span>
@@ -416,39 +532,195 @@ const RestaurantDashboard = () => {
               ) : filteredActiveSurpluses.length === 0 ? (
                 <p className="dashboard-empty-text">No active listings. Start by adding surplus food.</p>
               ) : (
-                <div className="table-container">
-                  <table className="dashboard-table">
-                    <thead>
-                      <tr>
-                        <th>Food Item</th>
-                        <th>Quantity</th>
-                        <th>Expiry</th>
-                        <th>Storage</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredActiveSurpluses.map((s) => (
-                        <tr key={s.id}>
-                          <td className="table-cell-main">{s.title}</td>
-                          <td>{s.quantity} {s.quantityUnit || 'kg'}</td>
-                          <td>
-                            <span className={`countdown-badge countdown-badge-${calculateExpiryCountdown(s.expiryTime) === 'Expired' ? 'red' : 'yellow'}`}>
-                              {calculateExpiryCountdown(s.expiryTime)}
-                            </span>
-                          </td>
-                          <td>{s.storageType || 'Room Temp'}</td>
-                          <td><StatusBadge status={s.status} /></td>
-                          <td className="table-actions">
-                            <button className="table-action-btn">Edit</button>
-                            <button className="table-action-btn table-action-btn-danger">Cancel</button>
-                          </td>
+                <>
+                  {editingSurplusId && (
+                    <div className="dashboard-card" style={{ marginBottom: '1.5rem' }}>
+                      <h3 className="dashboard-card-title">Edit Listing</h3>
+                      <form onSubmit={submitEdit} className="dashboard-form-large">
+                        <div className="dashboard-grid-two">
+                          <div>
+                            <label className="dashboard-label">Food Name *</label>
+                            <input
+                              name="title"
+                              value={editForm.title}
+                              onChange={handleEditChange}
+                              required
+                              placeholder="e.g., Mixed Vegetables, Cooked Chicken"
+                              className="dashboard-input"
+                            />
+                          </div>
+                          <div>
+                            <label className="dashboard-label">Category *</label>
+                            <select
+                              name="foodCategory"
+                              value={editForm.foodCategory}
+                              onChange={handleEditChange}
+                              className="dashboard-input"
+                            >
+                              <option>Cooked Meals</option>
+                              <option>Bakery</option>
+                              <option>Produce</option>
+                              <option>Packaged</option>
+                              <option>Dairy</option>
+                              <option>Beverages</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="dashboard-grid-two">
+                          <div>
+                            <label className="dashboard-label">Quantity</label>
+                            <div className="input-with-unit">
+                              <input
+                                name="quantity"
+                                type="number"
+                                step="0.1"
+                                value={editForm.quantity}
+                                onChange={handleEditChange}
+                                required
+                                placeholder="0"
+                                className="dashboard-input"
+                              />
+                              <select
+                                name="quantityUnit"
+                                value={editForm.quantityUnit}
+                                onChange={handleEditChange}
+                                className="dashboard-select-unit"
+                              >
+                                <option>kg</option>
+                                <option>liters</option>
+                                <option>portions</option>
+                                <option>units</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="dashboard-label">Storage Type</label>
+                            <select
+                              name="storageType"
+                              value={editForm.storageType}
+                              onChange={handleEditChange}
+                              className="dashboard-input"
+                            >
+                              <option>Room Temp</option>
+                              <option>Cold (2-8°C)</option>
+                              <option>Frozen (-18°C)</option>
+                              <option>Hot (60°C+)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="dashboard-grid-two">
+                          <div>
+                            <label className="dashboard-label">Expiry Date & Time *</label>
+                            <input
+                              name="expiryDateTime"
+                              type="datetime-local"
+                              value={editForm.expiryDateTime}
+                              onChange={handleEditChange}
+                              required
+                              className="dashboard-input"
+                            />
+                          </div>
+                          <div>
+                            <label className="dashboard-label">Pickup Window *</label>
+                            <div className="time-window">
+                              <input
+                                name="pickupWindowStart"
+                                type="time"
+                                value={editForm.pickupWindowStart}
+                                onChange={handleEditChange}
+                                className="dashboard-input"
+                              />
+                              <span className="time-separator">to</span>
+                              <input
+                                name="pickupWindowEnd"
+                                type="time"
+                                value={editForm.pickupWindowEnd}
+                                onChange={handleEditChange}
+                                required
+                                className="dashboard-input"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="dashboard-label">Notes</label>
+                          <textarea
+                            name="specialInstructions"
+                            value={editForm.specialInstructions}
+                            onChange={handleEditChange}
+                            rows={2}
+                            className="dashboard-input dashboard-textarea"
+                          />
+                        </div>
+
+                        <div className="dashboard-grid-two" style={{ gap: '0.75rem' }}>
+                          <button
+                            type="submit"
+                            disabled={editLoading}
+                            className="dashboard-primary-button-large"
+                          >
+                            {editLoading ? 'Saving...' : 'Save changes'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEditing}
+                            className="dashboard-secondary-button-large"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  <div className="table-container">
+                    <table className="dashboard-table">
+                      <thead>
+                        <tr>
+                          <th>Food Item</th>
+                          <th>Quantity</th>
+                          <th>Expiry</th>
+                          <th>Storage</th>
+                          <th>Status</th>
+                          <th>Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {filteredActiveSurpluses.map((s) => (
+                          <tr key={s.id}>
+                            <td className="table-cell-main">{s.title}</td>
+                            <td>{s.quantity} {s.quantityUnit || 'kg'}</td>
+                            <td>
+                              <span className={`countdown-badge countdown-badge-${calculateExpiryCountdown(s.expiryTime) === 'Expired' ? 'red' : 'yellow'}`}>
+                                {calculateExpiryCountdown(s.expiryTime)}
+                              </span>
+                            </td>
+                            <td>{s.storageType || 'Room Temp'}</td>
+                            <td><StatusBadge status={s.status} /></td>
+                            <td className="table-actions">
+                              <button
+                                className="table-action-btn"
+                                onClick={() => startEditingSurplus(s)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="table-action-btn table-action-btn-danger"
+                                onClick={() => deleteSurplus(s.id)}
+                                disabled={deletingId === s.id}
+                              >
+                                {deletingId === s.id ? 'Deleting…' : 'Cancel'}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           </div>

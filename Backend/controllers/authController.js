@@ -18,10 +18,42 @@ const generateToken = (user) => {
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role, location } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      location,
+      address,
+      contactNumber,
+      foodType,
+      operatingHours,
+    } = req.body;
+
+    // Handle uploaded document fields (if any): businessLicense + registrationDoc
+    const files = req.files || {};
+    const businessLicense = files.businessLicense?.[0];
+    const registrationDoc = files.registrationDoc?.[0];
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+
+    // Enforce additional hotel/restaurant-required fields and documents
+    const userRole = role || 'restaurant';
+    const needsApproval = userRole === 'restaurant';
+    if (needsApproval) {
+      if (!location || !address || !contactNumber || !foodType || !operatingHours) {
+        return res.status(400).json({
+          message:
+            'Location, address, contact number, food type, and operating hours are required for restaurant accounts',
+        });
+      }
+      if (!businessLicense || !registrationDoc) {
+        return res.status(400).json({
+          message: 'Business license and company registration documents are required for restaurant accounts',
+        });
+      }
     }
 
     const existingUser = await User.findOne({ where: { email } });
@@ -35,8 +67,15 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: role || 'restaurant',
+      role: userRole,
       location: location || null,
+      address: address || null,
+      contactNumber: contactNumber || null,
+      foodType: foodType || null,
+      operatingHours: operatingHours || null,
+      businessLicenseUrl: businessLicense ? `/api/files/${businessLicense.filename}` : null,
+      registrationDocUrl: registrationDoc ? `/api/files/${registrationDoc.filename}` : null,
+      status: needsApproval ? 'pending' : 'approved',
     });
 
     const token = generateToken(user);
@@ -49,6 +88,7 @@ exports.register = async (req, res) => {
         email: user.email,
         role: user.role,
         verified: user.verified,
+        status: user.status,
         location: user.location,
       },
       token,
@@ -87,6 +127,7 @@ exports.login = async (req, res) => {
         email: user.email,
         role: user.role,
         verified: user.verified,
+        status: user.status,
         location: user.location,
       },
       token,

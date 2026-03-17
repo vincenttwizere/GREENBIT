@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const { sequelize, ensureDatabaseExists } = require('./models');
@@ -7,12 +9,19 @@ const authRoutes = require('./routes/authRoutes');
 const restaurantRoutes = require('./routes/restaurantRoutes');
 const collectorRoutes = require('./routes/collectorRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const fileRoutes = require('./routes/fileRoutes');
 const { seedInitialData } = require('./utils/seed');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Ensure upload directory exists
+const uploadsPath = path.join(__dirname, 'uploads', 'documents');
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+}
 
 app.get('/', (req, res) => {
   res.json({ message: 'Green Bit Foundation API' });
@@ -22,6 +31,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/restaurant', restaurantRoutes);
 app.use('/api/collector', collectorRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/files', fileRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
@@ -40,7 +50,8 @@ async function startServer() {
   try {
     await ensureDatabaseExists();
     await sequelize.authenticate();
-    await sequelize.sync();
+    // Use sync({ alter: true }) in development to keep schema aligned with models.
+    await sequelize.sync({ alter: true });
     await seedInitialData();
 
     app.listen(PORT, () => {

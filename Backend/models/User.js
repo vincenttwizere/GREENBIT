@@ -39,6 +39,35 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    contactNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    foodType: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    operatingHours: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    businessLicenseUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    registrationDocUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    status: {
+      type: DataTypes.ENUM('pending', 'approved', 'rejected'),
+      allowNull: false,
+      defaultValue: 'approved',
+    },
   },
   {
     tableName: 'users',

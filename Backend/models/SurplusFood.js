@@ -22,6 +22,10 @@ const SurplusFood = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    foodCategory: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     description: {
       type: DataTypes.TEXT,
       allowNull: true,
@@ -30,9 +34,31 @@ const SurplusFood = sequelize.define(
       type: DataTypes.FLOAT.UNSIGNED,
       allowNull: false,
     },
+    quantityUnit: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'kg',
+    },
+    storageType: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'Room Temp',
+    },
+    specialInstructions: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    photoUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     expiryTime: {
       type: DataTypes.DATE,
       allowNull: false,
+    },
+    pickupWindowStart: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
     pickupDeadline: {
       type: DataTypes.DATE,

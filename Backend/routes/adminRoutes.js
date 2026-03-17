@@ -19,6 +19,13 @@ router.put(
   adminController.verifyUser
 );
 
+router.put(
+  '/users/:id/status',
+  authMiddleware,
+  roleMiddleware('admin'),
+  adminController.updateUserStatus
+);
+
 router.get(
   '/surplus',
   authMiddleware,
@@ -31,6 +38,13 @@ router.get(
   authMiddleware,
   roleMiddleware('admin'),
   adminController.getAnalytics
+);
+
+router.get(
+  '/notifications',
+  authMiddleware,
+  roleMiddleware('admin'),
+  adminController.getNotifications
 );
 
 module.exports = router;
