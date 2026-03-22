@@ -1,110 +1,134 @@
 ## Green Bit Foundation
 
-Full-stack food redistribution platform that connects hotels and restaurants with verified collectors to redistribute surplus food and track environmental impact.
+Full-stack food redistribution platform connecting restaurants and hotels with verified collectors for redistributing surplus food and tracking environmental impact.
 
-### Stack
+### Overview
 
-- **Backend**: Node.js, Express.js, MySQL, Sequelize, JWT, bcryptjs
-- **Frontend**: React (Vite), React Router, Axios, Context API, custom CSS
+- **Backend**: Node.js + Express, Sequelize ORM, MySQL, JWTauth, bcrypt hashing.
+- **Frontend**: React + Vite, React Router, Axios, context-based auth, responsive UI.
+
+### Goals
+
+- Reduce food waste by matching surplus inventory with local collection partners.
+- Support role-based workflows: restaurant, collector, admin.
+- Provide simple metrics (e.g., meals saved, CO₂ avoided).
+
+---
+
+## Getting Started
 
 ### Prerequisites
 
-- Node.js and npm installed
-- MySQL server running locally
+- Node.js v16+ and npm
+- MySQL server (or compatible SQL).
+- Git client for cloning repository.
 
-### Backend Setup
+### 1) Clone repository
 
-1. Navigate to the backend folder:
+```bash
+git clone https://github.com/<your-org>/GREENBIT.git
+cd GREENBIT
+```
 
-   ```bash
-   cd Backend
-   ```
+### 2) Backend Setup
 
-2. Create a `.env` file (or edit the existing one) based on `.env.example`:
+```bash
+cd Backend
+npm install
+```
 
-   ```bash
-   PORT=5000
-   DB_HOST=localhost
-   DB_NAME=greenbit_db
-   DB_USER=root
-   DB_PASSWORD=YOUR_DB_PASSWORD_HERE
-   JWT_SECRET=CHANGE_ME_TO_A_STRONG_SECRET
-   ```
+- Copy `.env.example` to `.env`.
+- Fill in app-specific values only. Example keys (do not commit secrets):
+  - `PORT`
+  - `DB_HOST`
+  - `DB_NAME`
+  - `DB_USER`
+  - `DB_PASSWORD`
+  - `JWT_SECRET`
 
-3. Ensure the `greenbit_db` database exists in MySQL:
+- Apply database migrations and seed data as needed. You can run any included setup or seed script (see `utils/seed.js`).
 
-   ```sql
-   CREATE DATABASE greenbit_db;
-   ```
+- Start backend:
 
-4. Install dependencies (already done once, but safe to re-run):
+```bash
+npm run dev
+```
 
-   ```bash
-   npm install
-   ```
+### 3) Frontend Setup
 
-5. Start the backend in development mode:
+```bash
+cd ../Fronted
+npm install
+```
 
-   ```bash
-   npm run dev
-   ```
+- Copy `.env.example` to `.env`.
+- Set `VITE_API_URL` to your backend base URL, e.g. `http://localhost:5000/api`.
 
-   The server will:
+- Start frontend:
 
-   - Connect to MySQL and sync models
-   - Seed one admin, one restaurant, and one verified collector user
-   - Expose the API at `http://localhost:5000/api`
+```bash
+npm run dev
+```
 
-### Frontend Setup
+---
 
-1. Navigate to the frontend folder:
+## Environment Variables
 
-   ```bash
-   cd Fronted
-   ```
+**Do not include real credentials, tokens, or secret keys in source control.**
+Use a `.env` file managed outside Git and add `.env` to `.gitignore`.
 
-2. Configure the API base URL by creating `.env` from `.env.example`:
+Backend environment variables should include:
+- `PORT`
+- `DB_HOST`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+- `JWT_SECRET`
 
-   ```bash
-   cp .env.example .env
-   ```
+Frontend environment variables should include:
+- `VITE_API_URL`
 
-   Adjust `VITE_API_URL` if your backend runs on a different host/port.
+---
 
-3. Install dependencies (already done once, but safe to re-run):
+## Security notes
 
-   ```bash
-   npm install
-   ```
+- Replace all default seeds and credentials for production use.
+- Use strong, random `JWT_SECRET` and database password.
+- Avoid putting any email/password, port, or sensitive strings into the repository.
 
-4. Start the frontend dev server:
+---
 
-   ```bash
-   npm run dev
-   ```
+## Usage
 
-5. Open the URL printed by Vite (typically `http://localhost:5173`) in your browser.
+- Register as restaurant/collector via UI.
+- Admin role management and approval flow is available under `/admin`.
+- Restaurant can create surplus entries and track status.
+- Collector can accept and complete pickups.
 
-### Default Seeded Users
+---
 
-- **Admin**
-  - Email: `admin@greenbit.org`
-  - Password: `AdminPass123!`
+## Common Commands
 
-- **Restaurant**
-  - Email: `restaurant@greenbit.org`
-  - Password: `Restaurant123!`
+From `Backend`:
+- `npm run dev` (development server)
+- `npm run start` (production)
 
-- **Collector (verified)**
-  - Email: `collector@greenbit.org`
-  - Password: `Collector123!`
+From `Fronted`:
+- `npm run dev`
+- `npm run build`
 
-### Key Features
+---
 
-- Role-based dashboards for **restaurant**, **collector**, and **admin**
-- JWT-based auth with protected routes on both backend and frontend
-- Restaurant: report surplus, view surplus list, impact summary (meals & CO₂ saved)
-- Collector: available pickups, assigned pickups, confirm pickup & delivery, history
-- Admin: manage users, verify collectors, monitor surplus, analytics with simple chart
-- Green-focused design system using Tailwind, with smooth, responsive UI
+## Contribution
+
+- Create feature branches from `main`.
+- Add tests where applicable.
+- Open PR for review; do not include `.env` or secrets.
+
+---
+
+## Notes
+
+Sensitive information (user passwords, emails, database credentials, port numbers, etc.) belongs in secure configuration (`.env`) not in `README.md` or git history.
+
 
